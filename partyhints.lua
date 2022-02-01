@@ -37,5 +37,53 @@ _addon.author = "Nattack"
 _addon.version = "0.1"
 _addon.commands = {"partyhints"}
 
+texts = require('texts')
+config = require('config')
+require('sets')
+require('functions')
+
+icons = require('icondb.lua')
+
+defaults = {
+    x_adjust = 0,
+    y_adjust = 0,
+    show_party_jobs = true,
+    show_target_job = true
+}
+
+
+MP_job = S{'WHM','BLM','SCH','RDM','SMN','DRK','PLD','RUN','GEO','BLU'} -- jobs that use MP
+Healer_job = S{'WHM', 'RDM', 'SCH'}
+Caster_job = S{'BLM', 'SCH', 'RDM'} -- jobs that may cast magic damage
+Melee_job = S{'WAR','MNK','THF','PLD','DRK','BST','BRD','SAM','NIN','DRG','BLU','PUP','DNC','RUN'} -- Jobs that may need haste
+Ranged_job = S{'RNG','COR'} -- jobs that may use Flurry
+Pet_job = S{'BST','DRG','PUP','SMN'} -- jobs that may benefit from pet buffs
+
+job_types = S{'MP', 'Healer', 'Caster', 'Melee', 'Ranged', 'Pet'}
+
+
+windower.register_event('load', function ()
+    _pos_base = {-34, -389, -288}
+    x_pos = windower.get_windower_settings().ui_x_res - (118 + x_adjust)
+    y_pos = 0
+end)
+
+windower.register_event('prerender', function()
+    -- do something!
+    
+end
+)
+
+local party={}
+local alliance={}
+
+function get_party_job()
+    local _party = windower.ffxi.get_party()
+
+end
+
+function get_target_job(target)
+
+end
 
 

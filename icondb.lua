@@ -26,7 +26,7 @@ _icons._32px = {
     GEO = '27786.bmp',
     RUN = '27787.bmp',
     NON = 'Button-Help-icon.bmp',   -- player is anonymous
-    UNK = 'Button-Help-icon.bmp'    -- players job is unknown (not yet checked)
+    UNK = 'Button-Help-icon.bmp',    -- players job is unknown (not yet checked)
 }
 _icons._16px = _icons._32px
 _icons._16px.NON = 'FAQ-icon.bmp'   -- more visible icon for 16x16
@@ -37,6 +37,10 @@ _icons._8px = { -- as of yet unussed.
     blue_orb = 'blue.bmp'
 }
 
-_icons.path_8px = '8x8'
-_icons.path_16px = '16x16'
-_icons.path_32px = '32x32'
+_icons.path_8px = '8x8\\'
+_icons.path_16px = '16x16\\'
+_icons.path_32px = '32x32\\'
+
+_icons.size_8px = 8
+_icons.size_16px = 16
+_icons.size_32px = 32

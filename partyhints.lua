@@ -56,10 +56,13 @@ defaults = {
     show_party_jobs = true,
     show_target_job = true,
     show_anon = true,
-    show_self = true
+    show_unknown = false,
+    show_self = true, 
+    show_last = true, 
 }
 
 settings=config.load(defaults)
+
 -- initialize image objects
 do
     local img_base = {
@@ -80,6 +83,11 @@ end
 
 -- job registry is a key->value table/db of player name->jobs we have encountered this addon session
 job_registry = {}
+
+party_count = 1
+alliance1_count = 0
+alliance2_count = 0
+
 
 --[[ 
     set_registry
@@ -122,21 +130,17 @@ function get_registry(name)
 end
 
 --[[
-    update_party
-    Updates party icons
+    update_party_icons
 ]]
-function update_party()
+function update_party_icons()
     if not settings.show_party_jobs then return end
-    
-    local function should_show_anon_state(name) 
-        return settings.show_anon or not S{'UNK','NON'}:contains(get_registry(name))
-    end
 
-    local function should_show_self(i)
-        return (not settings.show_self and i == 0) or settings.show_self
-    end
+    local pt = windower.ffxi.get_party_info()
 
-    pt = windower.ffxi.get_party_info()
+    local function should_show_anon_state(name) return settings.show_anon or not S{'UNK','NON'}:contains(get_registry(name)) end
+    local function should_show_self(index) return settings.show_self or (index ~= 0) end
+    local function should_show_unknown(name) return settings.show_unknown or get_registry(name) ~= 'UNK' end
+    local function should_show_last(index) return settings.show_last or (index+1 ~= pt.party1_count) end
     
     local _path = windower.windower_path .. windower.addon_path
     local p_indices = {'p0', 'p1', 'p2', 'p3', 'p4', 'p5'}
@@ -149,13 +153,14 @@ function update_party()
     local alliance2_y_pos = windower.get_windower_settings().ui_y_res - (200 + party_y_adjust)
     local party_gap = 20
     local alliance_gap = 16
-    
-    -- TODO: condense this into a function?
+
     for i = 0, 5 do
-        -- party
-        if i+1 <= pt.party1_count 
-        and should_show_anon_state(pt[p_indices[i]].name) 
-        and should_show_self(i) then
+        -- draw party icons
+        if i+1 <= party_count
+        and should_show_anon_state(pt[p_indices[i]].name)
+        and should_show_unknown(pt[p_indices[i]].name)
+        and should_show_self(i)
+        and should_show_last(i) then
             party_img[p_indices[i]]:path(_path.._icons._16px[get_registry(pt[p_indices[i]].name)])
             party_img[p_indices[i]]:transparency(0)
             party_img[p_indices[i]]:size(_icons.size_16px,_icons.size_16px)
@@ -167,8 +172,10 @@ function update_party()
             party_img[p_indices[i]]:hide()
         end
 
-        -- alliance 1
-        if i+1 <= pt.party2_count and should_show_anon_state(pt[a1_indices[i]].name) then
+        -- draw alliance 1 icons
+        if i+1 <= alliance1_count
+        and should_show_anon_state(pt[a1_indices[i]].name)
+        and should_show_unknown(pt[a1_indices[i]].name) then
             party_img[a1_indices[i]]:path(_path.._icons._16px[get_registry(pt[a1_indices[i].name])])
             party_img[a1_indices[i]]:transparency(0)
             party_img[a1_indices[i]]:size(_icons.size_16px,_icons.size_16px)
@@ -180,8 +187,10 @@ function update_party()
             party_img[a1_indices[i]]:hide()
         end
 
-        -- alliance 2
-        if i+1 <= pt.party3_count and should_show_anon_state(pt[a2_indices[i]].name) then
+        -- draw alliance 2 icons
+        if i+1 <= alliance2_count
+        and should_show_anon_state(pt[a2_indices[i]].name)
+        and should_show_unknown(pt[a2_indices[i]].name) then
             party_img[a2_indices[i]]:path(_path.._icons._16px[get_registry(pt[a2_indices[i].name])])
             party_img[a2_indices[i]]:transparency(0)
             party_img[a2_indices[i]]:size(_icons.size_16px,_icons.size_16px)
@@ -196,21 +205,28 @@ function update_party()
 end
 
 --[[
-    update_target
+    update_target_icon
     updates the target image
 
     arguments:
     name:   string of name of the player
 ]]
-function update_target(name)
-    
-    if not settings.show_target_job then return end
-    if not settings.show_anon and S{'NON','UNK'}:contains(get_registry(name)) then return end
-    local target_x_pos = windower.get_windower_settings().ui_x_res - (118 + settings.target_x_adjust)
-    local target_y_pos = windower.get_windower_settings().ui_y_res - (118 + settings.target_y_adjust)
+function update_target_icon(name)
+    if settings.show_target_job
+    and (not settings.show_anon and S{'NON','UNK'}:contains(get_registry(name))) 
+    and (not settings.show_unknown and get_registry(name) ~= 'UNK') then 
+        target_img:clear()
+        target_img:hide()
+        return
+    end
 
+    local party_gap = 20
+    local y_offset = (party_gap * (party_count-1))
+
+    local target_x_pos = windower.get_windower_settings().ui_x_res - (165 + settings.target_x_adjust)
+    local target_y_pos = windower.get_windower_settings().ui_y_res - (85 + settings.target_y_adjust + y_offset)
     
-    windower.add_to_chat(144, windower.addon_path .. _icons.path_32px .._icons._32px[get_registry(name)])
+    --windower.add_to_chat(144, windower.addon_path .. _icons.path_32px .._icons._32px[get_registry(name)])
     target_img:path(windower.addon_path .. _icons.path_32px .._icons._32px[get_registry(name)])
     target_img:transparency(0)
     target_img:size(_icons.size_32px,_icons.size_32px)
@@ -219,6 +235,23 @@ function update_target(name)
     target_img:show()
 end
 
+--[[
+    update_party_counts
+
+    updates the party counts, returns party table
+]]
+function update_party_counts()
+    local pt = windower.ffxi.get_party_info() 
+    -- TODO: Wrap these into a class or struct ... once I figure out how to do that in lua
+    party_count = pt.party1_count
+    alliance1_count = pt.party2_count
+    alliance2_count = pt.party3_count
+    return pt
+end
+
+--[[
+    Event Driven Functions
+]]
 windower.register_event('incoming chunk', function(id,data)
     -- party update packet
     if id == 0x0DD then
@@ -226,7 +259,7 @@ windower.register_event('incoming chunk', function(id,data)
         set_registry(
             p['Name'],
             p['Main Job'])
-        update_party()
+        update_party_icons()
 
     -- check packet
     elseif id == 0x0C9 then
@@ -235,8 +268,12 @@ windower.register_event('incoming chunk', function(id,data)
             windower.ffxi.get_mob_by_index(p['Target Index']).name,
             p['Main Job'])
         if windower.ffxi.get_mob_by_target('t') then 
-            update_target(windower.ffxi.get_mob_by_index(p['Target Index']).name)
+            update_target_icon(windower.ffxi.get_mob_by_index(p['Target Index']).name)
         end
+
+    -- possibly sent when summoning trusts?
+    -- elseif id == 0xE21 then
+    --     update_party_icons()
     end
 end)
 
@@ -250,7 +287,7 @@ windower.register_event('target change', function(index)
     end
 
     if not t.is_npc then
-        update_target(t.name)
+        update_target_icon(t.name)
     else
         target_img:clear()
         target_img:hide()
@@ -264,6 +301,23 @@ windower.register_event('target change', function(index)
     --         end
     --     end
     -- end
+end)
+
+windower.register_event('prerender', function()
+    local pt_new = windower.ffxi.get_party_info()
+    
+    -- check party counts, if they change from what is known in memory, update them.
+    -- should be a catch all for when trusts are summoned, or lost when zoning/dying.
+    if pt_new.party1_count ~= party_count
+    or pt_new.party2_count ~= alliance1_count
+    or pt_new.party3_count ~= alliance2_count then
+        update_party_counts()
+        update_party_icons()
+        target = windower.ffxi.get_mob_by_target('t')
+        if target then
+            update_target_icon(target.name)
+        end
+    end
 end)
 
 windower.register_event('addon command', function(...)

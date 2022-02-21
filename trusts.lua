@@ -119,7 +119,7 @@ trusts = T{
     [117]={id=1017,japanese="アシェラII",english="Arciela II",name="Arciela",models=3085, mjob=5},
     [118]={id=1018,japanese="イロハII",english="Iroha II",name="Iroha",models=3112, mjob=12},
     [119]={id=1019,japanese="シャントットII",english="Shantotto II",name="Shantotto",models=3110, mjob=4},
---  [120]={id=1003,japanese="コーネリア",english="Cornelia",name="Cornelia",models=3119, mjob=3}, --goodbye, my love
+    [120]={id=1003,japanese="コーネリア",english="Cornelia",name="Cornelia",models=3119, mjob=3}, --goodbye, my love
     [121]={id=999,japanese="モンブロー",english="Monberaux",name="Monberaux",models=3120, mjob=7},
     [122]={id=1003,japanese="マツイP",english="Matsui-P",name="Matsui-P",models=3121, mjob=13},
 }

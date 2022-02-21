@@ -41,6 +41,7 @@ config = require('config')
 packets = require('packets')
 res = require('resources')
 images = require('images')
+files = require('files')
 require('tables')
 
 require('icondb')
@@ -54,10 +55,11 @@ defaults = {
     target_y_adjust = 0,
 
     show_party_jobs = true,
+    show_alliance_jobs = true,
     show_target_job = true,
     show_anon = true,
     show_unknown = false,
-    show_self = true, 
+    show_self = true,
     show_last = true,
     show_trusts = true
 }
@@ -86,7 +88,7 @@ end
 -- job registry is a key->value table/db of player name->jobs we have encountered this addon session
 job_registry = {}
 
-party_count = 1
+party_count = 0
 alliance1_count = 0
 alliance2_count = 0
 
@@ -140,9 +142,10 @@ function update_party_icons()
     local pt = windower.ffxi.get_party()
 
     local function should_show_anon_state(name) return settings.show_anon or not S{'UNK','NON'}:contains(get_registry(name)) end
-    local function should_show_self(index) return settings.show_self or (index ~= 0) end
+    local function should_show_alliance() return settings.show_alliance_jobs end
+    local function should_show_self(index) return settings.show_self or (index ~= 1) end
     local function should_show_unknown(name) return settings.show_unknown or get_registry(name) ~= 'UNK' end
-    local function should_show_last(index) return settings.show_last or (index+1 ~= pt.party1_count) end
+    local function should_show_last(index) return settings.show_last or (index ~= pt.party1_count) end
     
     local _path = windower.addon_path
     local p_indices = {'p0', 'p1', 'p2', 'p3', 'p4', 'p5'}
@@ -151,8 +154,8 @@ function update_party_icons()
 
     local party_x_pos = windower.get_windower_settings().ui_x_res - (155 + settings.party_x_adjust * -1)
     local party_y_pos = windower.get_windower_settings().ui_y_res - (40 + settings.party_y_adjust * -1)
-    local alliance1_y_pos = windower.get_windower_settings().ui_y_res - (100 + settings.party_y_adjust * -1)
-    local alliance2_y_pos = windower.get_windower_settings().ui_y_res - (200 + settings.party_y_adjust * -1)
+    local alliance1_y_pos = windower.get_windower_settings().ui_y_res - (295 + settings.party_y_adjust * -1)
+    local alliance2_y_pos = windower.get_windower_settings().ui_y_res - (395 + settings.party_y_adjust * -1)
     local party_gap = 21
     local alliance_gap = 16
 
@@ -178,12 +181,13 @@ function update_party_icons()
         -- draw alliance 1 icons
         if i <= alliance1_count
         and should_show_anon_state(pt[v].name)
-        and should_show_unknown(pt[v].name) then
+        and should_show_unknown(pt[v].name) 
+        and should_show_alliance() then
             party_img[a1_indices[i]]:path(_path.._icons._16px[get_registry(pt[v].name)])
             party_img[a1_indices[i]]:transparency(0)
             party_img[a1_indices[i]]:size(_icons.size_16px,_icons.size_16px)
             party_img[a1_indices[i]]:pos_x(party_x_pos)
-            party_img[a1_indices[i]]:pos_y(alliance1_y_pos+i*alliance_gap)
+            party_img[a1_indices[i]]:pos_y(alliance1_y_pos + (i-1) * alliance_gap)
             party_img[a1_indices[i]]:show()
         else
             party_img[a1_indices[i]]:clear()
@@ -194,12 +198,13 @@ function update_party_icons()
         -- draw alliance 2 icons
         if i <= alliance2_count
         and should_show_anon_state(pt[v].name)
-        and should_show_unknown(pt[v].name) then
+        and should_show_unknown(pt[v].name)
+        and should_show_alliance() then
             party_img[a2_indices[i]]:path(_path.._icons._16px[get_registry(pt[v].name)])
             party_img[a2_indices[i]]:transparency(0)
             party_img[a2_indices[i]]:size(_icons.size_16px,_icons.size_16px)
             party_img[a2_indices[i]]:pos_x(party_x_pos)
-            party_img[a2_indices[i]]:pos_y(alliance2_y_pos + i*alliance_gap)
+            party_img[a2_indices[i]]:pos_y(alliance2_y_pos + (alliance2_count - i) * alliance_gap)
             party_img[a2_indices[i]]:show()
         else
             party_img[a2_indices[i]]:clear()
@@ -232,11 +237,11 @@ function update_target_icon(name)
         return
     end
 
-    local party_gap = 20
+    local party_gap = 21
     local y_offset = (party_gap * (party_count-1))
 
-    local target_x_pos = windower.get_windower_settings().ui_x_res - (165 + settings.target_x_adjust)
-    local target_y_pos = windower.get_windower_settings().ui_y_res - (85 + settings.target_y_adjust + y_offset)
+    local target_x_pos = windower.get_windower_settings().ui_x_res - (165 + settings.target_x_adjust * -1)
+    local target_y_pos = windower.get_windower_settings().ui_y_res - (89 + (settings.target_y_adjust * -1) + y_offset)
     
     --windower.add_to_chat(144, windower.addon_path .. _icons.path_32px .._icons._32px[get_registry(name)])
     target_img:path(windower.addon_path .. _icons.path_32px .._icons._32px[get_registry(name)])
@@ -332,45 +337,135 @@ end)
 windower.register_event('addon command', function(...)
     local args = T{...}
     local command = args[1] and args[1]:lower()
-
-    local function write_to_chat(to_write)
-        for i,v in ipairs(to_write) do
+    
+    local function write_to_chat(...)
+        args = T{...}
+        for i,v in pairs(args) do
             windower.add_to_chat(144,v)
         end
     end
 
-    if command then
-        if command == 'list' then
-            for k,v in pairs(job_registry) do
-                windower.add_to_chat(144, k .. ':' .. v)
-            end
-        elseif command == 'export' then
-            if not args[2] then
-                -- export party information, in csv
-            elseif args[2] == 'all' then
-                -- export entire registry
-            end
-        elseif command == 'toggle' then
-            if not args[2] then return
-            elseif args[2].lower() == 'party' then
-                -- toggle display of party members
-            elseif args[2].lower() == 'target' then
-                -- toggle display of target
-            end
-        end
-    else
-        write_to_chat(S{
-            'Usage: partyhints [command]',
-            'valid options:',
-            ' list',
-            ' export - exports the party information to csv',
-            ' export all - export everything in memory to csv',
-            ' toggle [setting]',
-            '  party - toggles showing of party jobs',
-            '  target - toggles showing of target job',
-            '  anon - toggles showing of anon icon'
+    -- function get_party()
+    --     local party_indices = {
+    --         'p0','p1','p2','p3','p4','p5',
+    --         'a10','a11','a12','a13','a14','a15',
+    --         'a20','a21','a22','a23','a24','a25'}
+        
+    --     local pt = windower.ffxi.get_party()
+    --     local pt_names = T{}
+    --     for k,v in ipairs(party_indices) do
+    --         pt_names.append(pt[v].name)
+    --     end
+    --     return pt_names
+    -- end
 
-        })
+    if command then
+        if false then
+        -- elseif command == 'list' then
+        --     for k,v in pairs(job_registry) do
+        --         windower.add_to_chat(144, k .. ':' .. v)
+        --     end
+        -- elseif command == 'export' then
+        --     if not args[2] then
+        --         -- export party information, in csv
+        --         date = os.date('*t')
+        --         name = windower.ffxi.get_player() and windower.ffxi.get_player().name
+        --         local file = files.new('../../logs/ph_%s_%.4u.%.2u.%.2u.%.2u%2u.log':format(name,date.year,date.month,date.day,date.hour,date.min))
+        --         if not file:exists() then
+        --             file:create()
+        --         end
+                
+        --         for k,v in ipairs(get_party()) do
+        --             file.append('%s,%s\n':format(v,get_registry(v)))
+        --         end
+                
+        --     elseif args[2] == 'all' then
+        --         -- export party information, in csv
+        --         date = os.date('*t')
+        --         name = windower.ffxi.get_player() and windower.ffxi.get_player().name
+        --         local file = files.new('../../logs/ph_all_%s_%.4u.%.2u.%.2u.%.2u%2u.log':format(name,date.year,date.month,date.day,date.hour,date.min))
+        --         if not file:exists() then
+        --             file:create()
+        --         end
+                
+        --         for k,v in pairs(job_registry) do
+        --             file.append('%s,%s\n':format(k,v))
+        --         end
+        --     end
+        elseif S{'show', 'toggle'}:contains(command) then
+            if not args[2] then
+                write_to_chat("Partyhints: toggle subcommands:", " party, target, alliance, anon, unknown, self, last")
+                return
+            elseif args[2]:lower() == 'party' then
+                settings.show_party_jobs = not settings.show_party_jobs
+            elseif args[2]:lower() == 'target' then
+                settings.show_target_job = not settings.show_target_job
+            elseif args[2]:lower() == 'alliance' then
+                settings.show_alliance_jobs = not settings.show_alliance_jobs
+            elseif args[2]:lower() == 'anon' then
+                settings.show_anon = not settings.show_anon
+            elseif args[2]:lower() == 'unknown' then
+                settings.show_unknown = not settings.show_unknown
+            elseif args[2]:lower() == 'self' then
+                settings.show_self = not settings.show_self
+            elseif args[2]:lower() == 'last' then
+                settings.show_last = not settings.show_last
+            elseif S{'trust','trusts'}:contains(args[2]:lower()) then
+                settings.show_trusts = not settings.show_trusts
+            else
+                write_to_chat(S{"unknown command: " .. args[2]})
+            end
+            update()
+            --config.save(settings, windower.ffxi.get_player().name)
+
+        elseif command == 'target' then
+            if (not args[2] and not args[3]) then
+                write_to_chat("Partyhints: target subcommands:",
+                    " x [integer] - sets the offset of target x position",
+                    " y [integer] - sets the offset of the target y position")
+            elseif args[2] == 'x' then
+                local n = tonumber(args[3])
+                if type(n) == 'number' then settings.target_x_adjust = n end
+            elseif args[2] == 'x' then
+                local n = tonumber(args[3])
+                if type(n) == 'number' then settings.target_y_adjust = n end
+            end
+            update()
+            -- config.save(settings,windower.ffxi.get_player().name)
+
+        elseif command == 'party' then
+            if (not args[2] and not args[3]) then
+                write_to_chat("Partyhints: party subcommands:",
+                    " x [integer] - sets the offset of target x position",
+                    " y [integer] - sets the offset of the target y position")
+            elseif args[2] == 'x' then
+                local n = tonumber(args[3])
+                if type(n) == 'number' then settings.party_x_adjust = n end
+            elseif args[2] == 'x' then
+                local n = tonumber(args[3])
+                if type(n) == 'number' then settings.party_y_adjust = n end
+            end
+            update()
+            -- config.save(settings,windower.ffxi.get_player().name)
+
+        elseif command == 'help' then   
+            write_to_chat(
+                'Usage: partyhints [command]',
+                'valid options:',
+                ' help - display this menu',
+                -- ' list',
+                -- ' export - exports the registry information to csv',
+                --' export all - export everything in memory to csv',
+                ' toggle [setting]',
+                '  party - toggles showing of party jobs',
+                '  target - toggles showing of target job',
+                '  alliance - toggles showing of alliance jobs',
+                '  anon - toggles showing of anon icon',
+                '  unknown - toggles showing of jobs we don\'t yet know',
+                '  self - toggles showing of own job',
+                '  last - toggles showing of the last job'
+            )
+        end
     end
 end)
 

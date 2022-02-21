@@ -58,7 +58,8 @@ defaults = {
     show_anon = true,
     show_unknown = false,
     show_self = true, 
-    show_last = true, 
+    show_last = true,
+    show_trusts = true
 }
 
 settings=config.load(defaults)
@@ -143,25 +144,25 @@ function update_party_icons()
     local function should_show_last(index) return settings.show_last or (index+1 ~= pt.party1_count) end
     
     local _path = windower.windower_path .. windower.addon_path
-    local p_indices = {'p0', 'p1', 'p2', 'p3', 'p4', 'p5'}
-    local a1_indices = {'a10','a11','a12','a13','a14','a15'}
-    local a2_indices = {'a20','a21','a22','a23','a24','a25'}
+    local p_indices = S{'p0', 'p1', 'p2', 'p3', 'p4', 'p5'}
+    local a1_indices = S{'a10','a11','a12','a13','a14','a15'}
+    local a2_indices = S{'a20','a21','a22','a23','a24','a25'}
 
-    local party_x_pos = windower.get_windower_settings().ui_x_res - (118 + party_x_adjust)
-    local party_y_pos = windower.get_windower_settings().ui_y_res - (50 + party_y_adjust)
-    local alliance1_y_pos = windower.get_windower_settings().ui_y_res - (100 + party_y_adjust)
-    local alliance2_y_pos = windower.get_windower_settings().ui_y_res - (200 + party_y_adjust)
+    local party_x_pos = windower.get_windower_settings().ui_x_res - (118 + settings.party_x_adjust)
+    local party_y_pos = windower.get_windower_settings().ui_y_res - (50 + settings.party_y_adjust)
+    local alliance1_y_pos = windower.get_windower_settings().ui_y_res - (100 + settings.party_y_adjust)
+    local alliance2_y_pos = windower.get_windower_settings().ui_y_res - (200 + settings.party_y_adjust)
     local party_gap = 20
     local alliance_gap = 16
 
-    for i = 0, 5 do
+    for i,v in ipairs(p_indices) do
         -- draw party icons
-        if i+1 <= party_count
-        and should_show_anon_state(pt[p_indices[i]].name)
-        and should_show_unknown(pt[p_indices[i]].name)
+        if i <= party_count
+        and should_show_anon_state(pt[v].name)
+        and should_show_unknown(pt[v].name)
         and should_show_self(i)
         and should_show_last(i) then
-            party_img[p_indices[i]]:path(_path.._icons._16px[get_registry(pt[p_indices[i]].name)])
+            party_img[p_indices[i]]:path(_path.._icons._16px[get_registry(pt[v].name)])
             party_img[p_indices[i]]:transparency(0)
             party_img[p_indices[i]]:size(_icons.size_16px,_icons.size_16px)
             party_img[p_indices[i]]:pos_x(party_x_pos)
@@ -171,12 +172,13 @@ function update_party_icons()
             party_img[p_indices[i]]:clear()
             party_img[p_indices[i]]:hide()
         end
-
+    end
+    for i,v in ipairs(a1_indices) do
         -- draw alliance 1 icons
-        if i+1 <= alliance1_count
-        and should_show_anon_state(pt[a1_indices[i]].name)
-        and should_show_unknown(pt[a1_indices[i]].name) then
-            party_img[a1_indices[i]]:path(_path.._icons._16px[get_registry(pt[a1_indices[i].name])])
+        if i <= alliance1_count
+        and should_show_anon_state(pt[v].name)
+        and should_show_unknown(pt[v].name) then
+            party_img[a1_indices[i]]:path(_path.._icons._16px[get_registry(pt[v].name)])
             party_img[a1_indices[i]]:transparency(0)
             party_img[a1_indices[i]]:size(_icons.size_16px,_icons.size_16px)
             party_img[a1_indices[i]]:pos_x(party_x_pos)
@@ -186,12 +188,13 @@ function update_party_icons()
             party_img[a1_indices[i]]:clear()
             party_img[a1_indices[i]]:hide()
         end
-
+    end
+    for i,v in ipairs(a2_indices) do
         -- draw alliance 2 icons
-        if i+1 <= alliance2_count
-        and should_show_anon_state(pt[a2_indices[i]].name)
-        and should_show_unknown(pt[a2_indices[i]].name) then
-            party_img[a2_indices[i]]:path(_path.._icons._16px[get_registry(pt[a2_indices[i].name])])
+        if i <= alliance2_count
+        and should_show_anon_state(pt[v].name)
+        and should_show_unknown(pt[v].name) then
+            party_img[a2_indices[i]]:path(_path.._icons._16px[get_registry(pt[v].name)])
             party_img[a2_indices[i]]:transparency(0)
             party_img[a2_indices[i]]:size(_icons.size_16px,_icons.size_16px)
             party_img[a2_indices[i]]:pos_x(party_x_pos)
@@ -212,9 +215,17 @@ end
     name:   string of name of the player
 ]]
 function update_target_icon(name)
+    local function should_show_anon_state(name)
+        return settings.show_anon or not S{'NON','UNK'}:contains(get_registry(name))
+    end
+
+    local function should_show_unknown(name)
+        return settings.show_unknown or not get_registry(name) == 'UNK'
+    end
+
     if settings.show_target_job
-    and (not settings.show_anon and S{'NON','UNK'}:contains(get_registry(name))) 
-    and (not settings.show_unknown and get_registry(name) ~= 'UNK') then 
+    and not should_show_anon_state(name)
+    and not should_show_unknown(name) then 
         target_img:clear()
         target_img:hide()
         return
@@ -247,6 +258,14 @@ function update_party_counts()
     alliance1_count = pt.party2_count
     alliance2_count = pt.party3_count
     return pt
+end
+
+function update()
+    update_party_icons()
+    target = windower.ffxi.get_mob_by_target('t')
+    if target then
+        update_target_icon(target.name)
+    end
 end
 
 --[[
@@ -312,11 +331,7 @@ windower.register_event('prerender', function()
     or pt_new.party2_count ~= alliance1_count
     or pt_new.party3_count ~= alliance2_count then
         update_party_counts()
-        update_party_icons()
-        target = windower.ffxi.get_mob_by_target('t')
-        if target then
-            update_target_icon(target.name)
-        end
+        update()
     end
 end)
 
@@ -369,6 +384,12 @@ end)
 windower.register_event('login', function(name) set_registry(name, windower.ffxi.get_player().main_job_id) end)
 windower.register_event('job change', function(main_job_id, main_job_level) set_registry(windower.ffxi.get_player().name, main_job_id) end)
 windower.register_event('load', function()
+    -- dump trusts into job registry
+
+    for k,v in ipairs(trusts) do
+        set_registry(v.name, v.mjob)
+    end
+
     if windower.ffxi.get_info().logged_in then
         local me = windower.ffxi.get_player()
         set_registry(me.name, me.main_job_id)

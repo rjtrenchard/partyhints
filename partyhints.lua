@@ -62,7 +62,8 @@ defaults = {
     show_trusts = true
 }
 
-settings=config.load(defaults)
+--settings=config.load(defaults)
+settings=defaults
 
 -- initialize image objects
 do
@@ -136,23 +137,23 @@ end
 function update_party_icons()
     if not settings.show_party_jobs then return end
 
-    local pt = windower.ffxi.get_party_info()
+    local pt = windower.ffxi.get_party()
 
     local function should_show_anon_state(name) return settings.show_anon or not S{'UNK','NON'}:contains(get_registry(name)) end
     local function should_show_self(index) return settings.show_self or (index ~= 0) end
     local function should_show_unknown(name) return settings.show_unknown or get_registry(name) ~= 'UNK' end
     local function should_show_last(index) return settings.show_last or (index+1 ~= pt.party1_count) end
     
-    local _path = windower.windower_path .. windower.addon_path
-    local p_indices = S{'p0', 'p1', 'p2', 'p3', 'p4', 'p5'}
-    local a1_indices = S{'a10','a11','a12','a13','a14','a15'}
-    local a2_indices = S{'a20','a21','a22','a23','a24','a25'}
+    local _path = windower.addon_path
+    local p_indices = {'p0', 'p1', 'p2', 'p3', 'p4', 'p5'}
+    local a1_indices = {'a10','a11','a12','a13','a14','a15'}
+    local a2_indices = {'a20','a21','a22','a23','a24','a25'}
 
-    local party_x_pos = windower.get_windower_settings().ui_x_res - (118 + settings.party_x_adjust)
-    local party_y_pos = windower.get_windower_settings().ui_y_res - (50 + settings.party_y_adjust)
-    local alliance1_y_pos = windower.get_windower_settings().ui_y_res - (100 + settings.party_y_adjust)
-    local alliance2_y_pos = windower.get_windower_settings().ui_y_res - (200 + settings.party_y_adjust)
-    local party_gap = 20
+    local party_x_pos = windower.get_windower_settings().ui_x_res - (155 + settings.party_x_adjust * -1)
+    local party_y_pos = windower.get_windower_settings().ui_y_res - (40 + settings.party_y_adjust * -1)
+    local alliance1_y_pos = windower.get_windower_settings().ui_y_res - (100 + settings.party_y_adjust * -1)
+    local alliance2_y_pos = windower.get_windower_settings().ui_y_res - (200 + settings.party_y_adjust * -1)
+    local party_gap = 21
     local alliance_gap = 16
 
     for i,v in ipairs(p_indices) do
@@ -162,11 +163,11 @@ function update_party_icons()
         and should_show_unknown(pt[v].name)
         and should_show_self(i)
         and should_show_last(i) then
-            party_img[p_indices[i]]:path(_path.._icons._16px[get_registry(pt[v].name)])
+            party_img[p_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(pt[v].name)])
             party_img[p_indices[i]]:transparency(0)
             party_img[p_indices[i]]:size(_icons.size_16px,_icons.size_16px)
             party_img[p_indices[i]]:pos_x(party_x_pos)
-            party_img[p_indices[i]]:pos_y(party_y_pos+i*party_gap)
+            party_img[p_indices[i]]:pos_y(party_y_pos-((party_count - i) * party_gap))
             party_img[p_indices[i]]:show()
         else
             party_img[p_indices[i]]:clear()
@@ -307,19 +308,12 @@ windower.register_event('target change', function(index)
 
     if not t.is_npc then
         update_target_icon(t.name)
+    elseif settings.show_trusts and t.is_npc and t.in_party then
+        update_target_icon(t.name)
     else
         target_img:clear()
         target_img:hide()
     end
-    -- TODO: show trust job
-    -- elseif t.is_npc then
-    --     for i,trust in trusts:it() do
-    --         if trust.name == t.name then
-    --             -- show trust job?
-    --             break
-    --         end
-    --     end
-    -- end
 end)
 
 windower.register_event('prerender', function()

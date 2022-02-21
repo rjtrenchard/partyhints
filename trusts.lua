@@ -4,7 +4,7 @@ trusts = T{
     [2]={id=897,japanese="ナジ",english="Naji",name="Naji",models=3001, mjob=1},
     [3]={id=898,japanese="クピピ",english="Kupipi",name="Kupipi",models=3002, mjob=3},
     [4]={id=899,japanese="エグセニミル",english="Excenmille",name="Excenmille",models=3003, mjob=7},
-    [5]={id=900,japanese="アヤメ",english="Ayame",name="Ayame",models=3004}, mjob=12,
+    [5]={id=900,japanese="アヤメ",english="Ayame",name="Ayame",models=3004, mjob=12}, 
     [6]={id=901,japanese="ナナー・ミーゴ",english="Nanaa Mihgo",name="NanaaMihgo",models=3005, mjob=6},
     [7]={id=902,japanese="クリルラ",english="Curilla",name="Curilla",models=3006, mjob=7},
     [8]={id=903,japanese="フォルカー",english="Volker",name="Volker",models=3007, mjob=1},

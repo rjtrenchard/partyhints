@@ -43,6 +43,8 @@ res = require('resources')
 images = require('images')
 files = require('files')
 require('tables')
+require('sets')
+require('functions')
 
 require('icondb')
 require('trusts')
@@ -86,7 +88,7 @@ do
 end
 
 -- job registry is a key->value table/db of player name->jobs we have encountered this addon session
-job_registry = {}
+job_registry = T{}
 
 party_count = 0
 alliance1_count = 0
@@ -284,7 +286,7 @@ windower.register_event('incoming chunk', function(id,data)
         set_registry(
             p['Name'],
             p['Main Job'])
-        update_party_icons()
+        update()
 
     -- check packet
     elseif id == 0x0C9 then
@@ -292,9 +294,12 @@ windower.register_event('incoming chunk', function(id,data)
         set_registry(
             windower.ffxi.get_mob_by_index(p['Target Index']).name,
             p['Main Job'])
-        if windower.ffxi.get_mob_by_target('t') then 
-            update_target_icon(windower.ffxi.get_mob_by_index(p['Target Index']).name)
-        end
+        update()
+
+    -- PC update packet?
+    -- elseif id == 0x00D then
+    --     local p = packets.parse('incoming', data)
+    --     print("%":format(p['Player']) .. ' ' .. p['Index'] .. ' ' .. p['Target Index'] .. ' ' .. p['Main'])
 
     -- possibly sent when summoning trusts?
     -- elseif id == 0xE21 then
@@ -470,8 +475,11 @@ windower.register_event('addon command', function(...)
 end)
 
 -- populate your job on login, load, or job change
-windower.register_event('login', function(name) set_registry(name, windower.ffxi.get_player().main_job_id) end)
-windower.register_event('job change', function(main_job_id, main_job_level) set_registry(windower.ffxi.get_player().name, main_job_id) end)
+windower.register_event('login', function(name) set_registry(name, windower.ffxi.get_player().main_job_id) update() end)
+windower.register_event('job change', function(main_job_id, main_job_level)
+    set_registry(windower.ffxi.get_player().name, main_job_id)
+    update()
+end)
 windower.register_event('load', function()
     -- dump trusts into job registry
 
@@ -483,4 +491,5 @@ windower.register_event('load', function()
         local me = windower.ffxi.get_player()
         set_registry(me.name, me.main_job_id)
     end
+    update()
 end)

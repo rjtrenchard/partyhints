@@ -255,24 +255,18 @@ function update_target_icon(name)
 end
 
 --[[
-    update_party_counts
+    update
 
-    updates the party counts, returns party table
+    updates all graphics
 ]]
-function update_party_counts()
-    local pt = windower.ffxi.get_party_info() 
-    -- TODO: Wrap these into a class or struct ... once I figure out how to do that in lua
-    party_count = pt.party1_count
-    alliance1_count = pt.party2_count
-    alliance2_count = pt.party3_count
-    return pt
-end
-
 function update()
     update_party_icons()
     target = windower.ffxi.get_mob_by_target('t')
     if target then
         update_target_icon(target.name)
+    else
+        target_img:clear()
+        target_img:hide()
     end
 end
 
@@ -296,12 +290,7 @@ windower.register_event('incoming chunk', function(id,data)
             p['Main Job'])
         update()
 
-    -- PC update packet?
-    -- elseif id == 0x00D then
-    --     local p = packets.parse('incoming', data)
-    --     print("%":format(p['Player']) .. ' ' .. p['Index'] .. ' ' .. p['Target Index'] .. ' ' .. p['Main'])
-
-    -- possibly sent when summoning trusts?
+    -- possibly recieved when summoning trusts?
     -- elseif id == 0xE21 then
     --     update_party_icons()
     end
@@ -310,7 +299,7 @@ end)
 windower.register_event('target change', function(index)
     -- if not index then return end
     local t = windower.ffxi.get_mob_by_index(index)
-    if not t then 
+    if not t then
         target_img:clear()
         target_img:hide()
         return
@@ -318,8 +307,8 @@ windower.register_event('target change', function(index)
 
     if not t.is_npc then
         update_target_icon(t.name)
-    elseif settings.show_trusts and t.is_npc and t.in_party then
-        update_target_icon(t.name)
+    -- elseif settings.show_trusts and t.is_npc and t.in_party then
+    --     update_target_icon(t.name)
     else
         target_img:clear()
         target_img:hide()
@@ -334,7 +323,9 @@ windower.register_event('prerender', function()
     if pt_new.party1_count ~= party_count
     or pt_new.party2_count ~= alliance1_count
     or pt_new.party3_count ~= alliance2_count then
-        update_party_counts()
+        party_count = pt_new.party1_count
+        alliance1_count = pt_new.party2_count
+        alliance2_count = pt_new.party3_count
         update()
     end
 end)
@@ -366,6 +357,8 @@ windower.register_event('addon command', function(...)
 
     if command then
         if false then
+        elseif command == 'update' then
+            update()
         -- elseif command == 'list' then
         --     for k,v in pairs(job_registry) do
         --         windower.add_to_chat(144, k .. ':' .. v)

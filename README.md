@@ -27,7 +27,7 @@ Trust jobs are automatically known by the addon.
 * Usage: `//partyhints \[command\] \[subcommand\] \[argument\]
 
 | Command | Subcommand | Description |
-| --- | --- |
+| --- | --- | --- |
 | update | N/A | Forces the graphics to update |
 | toggle | party, target, alliance | Toggles display of party, target, or alliance |
 | toggle | anon, unknown, self, last | Toggles display of hidden players, players who's job is not yet known, your own icon, and the last icon of the player in the party list |

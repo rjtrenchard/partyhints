@@ -61,13 +61,13 @@ defaults = {
     show_target_job = true,
     show_anon = true,
     show_unknown = false,
-    show_self = true,
+    show_self = false,
     show_last = true,
     show_trusts = true
 }
 
---settings=config.load(defaults)
-settings=defaults
+settings=config.load(defaults)
+-- settings=defaults
 
 -- initialize image objects
 do
@@ -156,8 +156,8 @@ function update_party_icons()
 
     local party_x_pos = windower.get_windower_settings().ui_x_res - (155 + settings.party_x_adjust * -1)
     local party_y_pos = windower.get_windower_settings().ui_y_res - (40 + settings.party_y_adjust * -1)
-    local alliance1_y_pos = windower.get_windower_settings().ui_y_res - (295 + settings.party_y_adjust * -1)
-    local alliance2_y_pos = windower.get_windower_settings().ui_y_res - (395 + settings.party_y_adjust * -1)
+    local alliance1_y_pos = windower.get_windower_settings().ui_y_res - (395 + settings.party_y_adjust * -1)
+    local alliance2_y_pos = windower.get_windower_settings().ui_y_res - (295 + settings.party_y_adjust * -1)
     local party_gap = 21
     local alliance_gap = 16
 
@@ -185,7 +185,7 @@ function update_party_icons()
         and should_show_anon_state(pt[v].name)
         and should_show_unknown(pt[v].name) 
         and should_show_alliance() then
-            party_img[a1_indices[i]]:path(_path.._icons._16px[get_registry(pt[v].name)])
+            party_img[a1_indices[i]]:path(_path.. _icons.path_16px .._icons._16px[get_registry(pt[v].name)])
             party_img[a1_indices[i]]:transparency(0)
             party_img[a1_indices[i]]:size(_icons.size_16px,_icons.size_16px)
             party_img[a1_indices[i]]:pos_x(party_x_pos)
@@ -202,11 +202,11 @@ function update_party_icons()
         and should_show_anon_state(pt[v].name)
         and should_show_unknown(pt[v].name)
         and should_show_alliance() then
-            party_img[a2_indices[i]]:path(_path.._icons._16px[get_registry(pt[v].name)])
+            party_img[a2_indices[i]]:path(_path.. _icons.path_16px.._icons._16px[get_registry(pt[v].name)])
             party_img[a2_indices[i]]:transparency(0)
             party_img[a2_indices[i]]:size(_icons.size_16px,_icons.size_16px)
             party_img[a2_indices[i]]:pos_x(party_x_pos)
-            party_img[a2_indices[i]]:pos_y(alliance2_y_pos + (alliance2_count - i) * alliance_gap)
+            party_img[a2_indices[i]]:pos_y(alliance2_y_pos + (i - 1) * alliance_gap)
             party_img[a2_indices[i]]:show()
         else
             party_img[a2_indices[i]]:clear()

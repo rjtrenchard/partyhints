@@ -24,7 +24,7 @@ Trust jobs are automatically known by the addon.
 
 ## Commands
 
-* Usage: `//partyhints \[command\] \[subcommand\] \[argument\]
+* Usage: `//partyhints [command] [subcommand] [argument]`
 
 | Command | Subcommand | Description |
 | --- | --- | --- |

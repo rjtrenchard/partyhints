@@ -63,7 +63,8 @@ defaults = {
     show_unknown = false,
     show_self = false,
     show_last = true,
-    show_trusts = true
+    show_trusts = true,
+    show_levels = false -- future implementation
 }
 
 settings=config.load(defaults)
@@ -297,7 +298,6 @@ windower.register_event('incoming chunk', function(id,data)
 end)
 
 windower.register_event('target change', function(index)
-    -- if not index then return end
     local t = windower.ffxi.get_mob_by_index(index)
     if not t then
         target_img:clear()
@@ -414,7 +414,7 @@ windower.register_event('addon command', function(...)
                 write_to_chat(S{"unknown command: " .. args[2]})
             end
             update()
-            --config.save(settings, windower.ffxi.get_player().name)
+            config.save(settings, windower.ffxi.get_player().name)
 
         elseif command == 'target' then
             if (not args[2] and not args[3]) then
@@ -429,7 +429,7 @@ windower.register_event('addon command', function(...)
                 if type(n) == 'number' then settings.target_y_adjust = n end
             end
             update()
-            -- config.save(settings,windower.ffxi.get_player().name)
+            config.save(settings,windower.ffxi.get_player().name)
 
         elseif command == 'party' then
             if (not args[2] and not args[3]) then
@@ -444,7 +444,7 @@ windower.register_event('addon command', function(...)
                 if type(n) == 'number' then settings.party_y_adjust = n end
             end
             update()
-            -- config.save(settings,windower.ffxi.get_player().name)
+            config.save(settings,windower.ffxi.get_player().name)
 
         elseif command == 'help' then   
             write_to_chat(

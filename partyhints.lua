@@ -32,7 +32,7 @@
 
 _addon.name = "Party Hints"
 _addon.author = "rjt"
-_addon.version = "1.0"
+_addon.version = "1.1"
 _addon.commands = {"partyhints", "ph"}
 
 config = require('config')

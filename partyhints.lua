@@ -261,7 +261,7 @@ end
 function update()
     update_party_icons()
     target = windower.ffxi.get_mob_by_target('t')
-    if target then
+    if target and not target.is_npc then
         update_target_icon(target.name)
     else
         target_img:clear()

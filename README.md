@@ -35,10 +35,6 @@ Trust jobs are automatically known by the addon.
 | party | x \[argument\], y \[argument\] | adjusts x or y position of the party and alliance icons in pixels |
 | help | N/A | display in game help |
 
-## Current Known issues
-
-- Mobs occasionally return 'unknown' job icons.
-
 ## Version
 
 **Author:** rjt

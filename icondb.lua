@@ -26,7 +26,7 @@ _icons._32px = {
     GEO = '27786.bmp',
     RUN = '27787.bmp',
     MON = '1239.bmp',
-    NON = 'Button-Help-icon.bmp',    -- player is anonymous
+    NON = 'Button-Help-icon-red.bmp',    -- player is anonymous
     UNK = 'Button-Help-icon.bmp',    -- players job is unknown (not yet checked into memory)
 }
 _icons._16px = {
@@ -53,7 +53,7 @@ _icons._16px = {
     GEO = '27786.bmp',
     RUN = '27787.bmp',
     MON = '1239.bmp',
-    NON = 'FAQ-icon.bmp',    -- player is anonymous
+    NON = 'FAQ-icon-red.bmp',    -- player is anonymous
     UNK = 'FAQ-icon.bmp',    -- players job is unknown (not yet checked into memory)
 }
 _icons._8px = { -- as of yet unussed.

@@ -315,7 +315,9 @@ end)
 
 windower.register_event('prerender', function()
     local pt_new = windower.ffxi.get_party_info()
-    
+    if not pt_new then return end
+    if not pt_new.party1_count then return end
+
     -- check party counts, if they change from what is known in memory, update them.
     -- should be a catch all for when trusts are summoned, or lost when zoning/dying.
     if pt_new.party1_count ~= party_count

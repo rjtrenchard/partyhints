@@ -39,6 +39,6 @@ Trust jobs are automatically known by the addon.
 
 **Author:** rjt
 
-**Version:** 1.0
+**Version:** 1.1
 
 **Date:** 22/02/22

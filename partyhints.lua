@@ -32,8 +32,8 @@
 
 _addon.name = "Party Hints"
 _addon.author = "rjt"
-_addon.version = "1.1"
-_addon.commands = {"partyhints", "ph"}
+_addon.version = "1.2"
+_addon.commands = { "partyhints", "ph" }
 
 config = require('config')
 packets = require('packets')
@@ -65,29 +65,31 @@ defaults = {
     show_levels = false -- future implementation
 }
 
-settings=config.load(defaults)
+settings = config.load(defaults)
 -- settings=defaults
 
 -- initialize image objects
 do
     local img_base = {
-        color = {alpha = 255},
-        texture = {fit = false},
-        draggable = false,}
+        color = { alpha = 255 },
+        texture = { fit = false },
+        draggable = false,
+    }
     local party_indices = {
-        'p0','p1','p2','p3','p4','p5',
-        'a10','a11','a12','a13','a14','a15',
-        'a20','a21','a22','a23','a24','a25'}
+        'p0', 'p1', 'p2', 'p3', 'p4', 'p5',
+        'a10', 'a11', 'a12', 'a13', 'a14', 'a15',
+        'a20', 'a21', 'a22', 'a23', 'a24', 'a25'
+    }
 
-    party_img = T{}
+    party_img = T {}
     target_img = images.new(img_base)
-    for i,k in ipairs(party_indices) do
+    for i, k in ipairs(party_indices) do
         party_img[k] = images.new(img_base)
     end
 end
 
 -- job registry is a key->value table/db of player name->jobs we have encountered this addon session
-job_registry = T{}
+job_registry = T {}
 
 party_count = 0
 alliance1_count = 0
@@ -109,7 +111,8 @@ function set_registry(name, job_id)
     if not name then return false end
     job_registry[name] = job_registry[name] or 'NON'
     job_id = job_id or 0
-    if res.jobs[job_id].english_short == 'NON' and job_registry[name] and not S{'NON', 'UNK'}:contains(job_registry[name]) then 
+    if res.jobs[job_id].english_short == 'NON' and job_registry[name] and
+        not S { 'NON', 'UNK' }:contains(job_registry[name]) then
         return false
     end
     job_registry[name] = res.jobs[job_id].english_short
@@ -142,16 +145,22 @@ function update_party_icons()
 
     local pt = windower.ffxi.get_party()
 
-    local function should_show_anon_state(name) return settings.show_anon or not S{'UNK','NON'}:contains(get_registry(name)) end
+    local function should_show_anon_state(name) return settings.show_anon or
+            not S { 'UNK', 'NON' }:contains(get_registry(name))
+    end
+
     local function should_show_alliance() return settings.show_alliance_jobs end
+
     local function should_show_self(index) return settings.show_self or (index ~= 1) end
+
     local function should_show_unknown(name) return settings.show_unknown or get_registry(name) ~= 'UNK' end
+
     local function should_show_last(index) return settings.show_last or (index ~= pt.party1_count) end
-    
+
     local _path = windower.addon_path
-    local p_indices = {'p0', 'p1', 'p2', 'p3', 'p4', 'p5'}
-    local a1_indices = {'a10','a11','a12','a13','a14','a15'}
-    local a2_indices = {'a20','a21','a22','a23','a24','a25'}
+    local p_indices = { 'p0', 'p1', 'p2', 'p3', 'p4', 'p5' }
+    local a1_indices = { 'a10', 'a11', 'a12', 'a13', 'a14', 'a15' }
+    local a2_indices = { 'a20', 'a21', 'a22', 'a23', 'a24', 'a25' }
 
     local party_x_pos = windower.get_windower_settings().ui_x_res - (155 + settings.party_x_adjust * -1)
     local party_y_pos = windower.get_windower_settings().ui_y_res - (40 + settings.party_y_adjust * -1)
@@ -160,50 +169,50 @@ function update_party_icons()
     local party_gap = 21
     local alliance_gap = 16
 
-    for i,v in ipairs(p_indices) do
+    for i, v in ipairs(p_indices) do
         -- draw party icons
         if i <= party_count
-        and should_show_anon_state(pt[v].name)
-        and should_show_unknown(pt[v].name)
-        and should_show_self(i)
-        and should_show_last(i) then
+            and should_show_anon_state(pt[v].name)
+            and should_show_unknown(pt[v].name)
+            and should_show_self(i)
+            and should_show_last(i) then
             party_img[p_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(pt[v].name)])
             party_img[p_indices[i]]:transparency(0)
-            party_img[p_indices[i]]:size(_icons.size_16px,_icons.size_16px)
+            party_img[p_indices[i]]:size(_icons.size_16px, _icons.size_16px)
             party_img[p_indices[i]]:pos_x(party_x_pos)
-            party_img[p_indices[i]]:pos_y(party_y_pos-((party_count - i) * party_gap))
+            party_img[p_indices[i]]:pos_y(party_y_pos - ((party_count - i) * party_gap))
             party_img[p_indices[i]]:show()
         else
             party_img[p_indices[i]]:clear()
             party_img[p_indices[i]]:hide()
         end
     end
-    for i,v in ipairs(a1_indices) do
+    for i, v in ipairs(a1_indices) do
         -- draw alliance 1 icons
         if i <= alliance1_count
-        and should_show_anon_state(pt[v].name)
-        and should_show_unknown(pt[v].name) 
-        and should_show_alliance() then
-            party_img[a1_indices[i]]:path(_path.. _icons.path_16px .._icons._16px[get_registry(pt[v].name)])
+            and should_show_anon_state(pt[v].name)
+            and should_show_unknown(pt[v].name)
+            and should_show_alliance() then
+            party_img[a1_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(pt[v].name)])
             party_img[a1_indices[i]]:transparency(0)
-            party_img[a1_indices[i]]:size(_icons.size_16px,_icons.size_16px)
+            party_img[a1_indices[i]]:size(_icons.size_16px, _icons.size_16px)
             party_img[a1_indices[i]]:pos_x(party_x_pos)
-            party_img[a1_indices[i]]:pos_y(alliance1_y_pos + (i-1) * alliance_gap)
+            party_img[a1_indices[i]]:pos_y(alliance1_y_pos + (i - 1) * alliance_gap)
             party_img[a1_indices[i]]:show()
         else
             party_img[a1_indices[i]]:clear()
             party_img[a1_indices[i]]:hide()
         end
     end
-    for i,v in ipairs(a2_indices) do
+    for i, v in ipairs(a2_indices) do
         -- draw alliance 2 icons
         if i <= alliance2_count
-        and should_show_anon_state(pt[v].name)
-        and should_show_unknown(pt[v].name)
-        and should_show_alliance() then
-            party_img[a2_indices[i]]:path(_path.. _icons.path_16px.._icons._16px[get_registry(pt[v].name)])
+            and should_show_anon_state(pt[v].name)
+            and should_show_unknown(pt[v].name)
+            and should_show_alliance() then
+            party_img[a2_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(pt[v].name)])
             party_img[a2_indices[i]]:transparency(0)
-            party_img[a2_indices[i]]:size(_icons.size_16px,_icons.size_16px)
+            party_img[a2_indices[i]]:size(_icons.size_16px, _icons.size_16px)
             party_img[a2_indices[i]]:pos_x(party_x_pos)
             party_img[a2_indices[i]]:pos_y(alliance2_y_pos + (i - 1) * alliance_gap)
             party_img[a2_indices[i]]:show()
@@ -223,7 +232,7 @@ end
 ]]
 function update_target_icon(name)
     local function should_show_anon_state(name)
-        return settings.show_anon or not S{'NON','UNK'}:contains(get_registry(name))
+        return settings.show_anon or not S { 'NON', 'UNK' }:contains(get_registry(name))
     end
 
     local function should_show_unknown(name)
@@ -231,23 +240,23 @@ function update_target_icon(name)
     end
 
     if settings.show_target_job
-    and not should_show_anon_state(name)
-    and not should_show_unknown(name) then 
+        and not should_show_anon_state(name)
+        and not should_show_unknown(name) then
         target_img:clear()
         target_img:hide()
         return
     end
 
     local party_gap = 21
-    local y_offset = (party_gap * (party_count-1))
+    local y_offset = (party_gap * (party_count - 1))
 
     local target_x_pos = windower.get_windower_settings().ui_x_res - (165 + settings.target_x_adjust * -1)
     local target_y_pos = windower.get_windower_settings().ui_y_res - (89 + (settings.target_y_adjust * -1) + y_offset)
-    
+
     --windower.add_to_chat(144, windower.addon_path .. _icons.path_32px .._icons._32px[get_registry(name)])
-    target_img:path(windower.addon_path .. _icons.path_32px .._icons._32px[get_registry(name)])
+    target_img:path(windower.addon_path .. _icons.path_32px .. _icons._32px[get_registry(name)])
     target_img:transparency(0)
-    target_img:size(_icons.size_32px,_icons.size_32px)
+    target_img:size(_icons.size_32px, _icons.size_32px)
     target_img:pos_x(target_x_pos)
     target_img:pos_y(target_y_pos)
     target_img:show()
@@ -272,16 +281,40 @@ end
 --[[
     Event Driven Functions
 ]]
-windower.register_event('incoming chunk', function(id,data)
+windower.register_event('incoming chunk', function(id, data)
     -- party update packet
     if id == 0x0DD then
         local p = packets.parse('incoming', data)
         set_registry(
             p['Name'],
-            p['Main Job'])
+            p['Main job'])
         update()
 
-    -- check packet
+        -- 0xDF and 0xC8 from xivparty lua by Tylas
+        -- alliance update
+    elseif id == 0x0C8 then
+        -- local p = packets.parse('incoming', data)
+        -- if p then
+        --     for i = 1, 18 do
+        --         local player_id = packet['ID ' .. tostring(i)]
+        --         local flags = packet['Flags '.. tostring(i)]
+        --     end
+        -- end
+        update()
+
+
+
+        -- character update
+    elseif id == 0x0DF then
+        local p = packets.parse('incoming', data)
+        if p then
+            local player = windower.ffxi.get_mob_by_id(p['ID']).name
+            local job = p['Main job']
+            set_registry(player, job)
+        end
+        update()
+
+        -- check packet
     elseif id == 0x0C9 then
         local p = packets.parse('incoming', data)
         set_registry(
@@ -289,9 +322,9 @@ windower.register_event('incoming chunk', function(id,data)
             p['Main Job'])
         update()
 
-    -- possibly recieved when summoning trusts?
-    -- elseif id == 0xE21 then
-    --     update_party_icons()
+        -- possibly recieved when summoning trusts?
+        -- elseif id == 0xE21 then
+        --     update_party_icons()
     end
 end)
 
@@ -305,8 +338,8 @@ windower.register_event('target change', function(index)
 
     if not t.is_npc then
         update_target_icon(t.name)
-    -- elseif settings.show_trusts and t.is_npc and t.in_party then
-    --     update_target_icon(t.name)
+        -- elseif settings.show_trusts and t.is_npc and t.in_party then
+        --     update_target_icon(t.name)
     else
         target_img:clear()
         target_img:hide()
@@ -321,8 +354,8 @@ windower.register_event('prerender', function()
     -- check party counts, if they change from what is known in memory, update them.
     -- should be a catch all for when trusts are summoned, or lost when zoning/dying.
     if pt_new.party1_count ~= party_count
-    or pt_new.party2_count ~= alliance1_count
-    or pt_new.party3_count ~= alliance2_count then
+        or pt_new.party2_count ~= alliance1_count
+        or pt_new.party3_count ~= alliance2_count then
         party_count = pt_new.party1_count
         alliance1_count = pt_new.party2_count
         alliance2_count = pt_new.party3_count
@@ -331,13 +364,13 @@ windower.register_event('prerender', function()
 end)
 
 windower.register_event('addon command', function(...)
-    local args = T{...}
+    local args = T { ... }
     local command = args[1] and args[1]:lower()
-    
+
     local function write_to_chat(...)
-        args = T{...}
-        for i,v in pairs(args) do
-            windower.add_to_chat(144,v)
+        args = T { ... }
+        for i, v in pairs(args) do
+            windower.add_to_chat(144, v)
         end
     end
 
@@ -346,7 +379,7 @@ windower.register_event('addon command', function(...)
     --         'p0','p1','p2','p3','p4','p5',
     --         'a10','a11','a12','a13','a14','a15',
     --         'a20','a21','a22','a23','a24','a25'}
-        
+
     --     local pt = windower.ffxi.get_party()
     --     local pt_names = T{}
     --     for k,v in ipairs(party_indices) do
@@ -359,38 +392,38 @@ windower.register_event('addon command', function(...)
         if false then
         elseif command == 'update' then
             update()
-        -- elseif command == 'list' then
-        --     for k,v in pairs(job_registry) do
-        --         windower.add_to_chat(144, k .. ':' .. v)
-        --     end
-        -- elseif command == 'export' then
-        --     if not args[2] then
-        --         -- export party information, in csv
-        --         date = os.date('*t')
-        --         name = windower.ffxi.get_player() and windower.ffxi.get_player().name
-        --         local file = files.new('../../logs/ph_%s_%.4u.%.2u.%.2u.%.2u%2u.log':format(name,date.year,date.month,date.day,date.hour,date.min))
-        --         if not file:exists() then
-        --             file:create()
-        --         end
-                
-        --         for k,v in ipairs(get_party()) do
-        --             file.append('%s,%s\n':format(v,get_registry(v)))
-        --         end
-                
-        --     elseif args[2] == 'all' then
-        --         -- export party information, in csv
-        --         date = os.date('*t')
-        --         name = windower.ffxi.get_player() and windower.ffxi.get_player().name
-        --         local file = files.new('../../logs/ph_all_%s_%.4u.%.2u.%.2u.%.2u%2u.log':format(name,date.year,date.month,date.day,date.hour,date.min))
-        --         if not file:exists() then
-        --             file:create()
-        --         end
-                
-        --         for k,v in pairs(job_registry) do
-        --             file.append('%s,%s\n':format(k,v))
-        --         end
-        --     end
-        elseif S{'show', 'toggle'}:contains(command) then
+            -- elseif command == 'list' then
+            --     for k,v in pairs(job_registry) do
+            --         windower.add_to_chat(144, k .. ':' .. v)
+            --     end
+            -- elseif command == 'export' then
+            --     if not args[2] then
+            --         -- export party information, in csv
+            --         date = os.date('*t')
+            --         name = windower.ffxi.get_player() and windower.ffxi.get_player().name
+            --         local file = files.new('../../logs/ph_%s_%.4u.%.2u.%.2u.%.2u%2u.log':format(name,date.year,date.month,date.day,date.hour,date.min))
+            --         if not file:exists() then
+            --             file:create()
+            --         end
+
+            --         for k,v in ipairs(get_party()) do
+            --             file.append('%s,%s\n':format(v,get_registry(v)))
+            --         end
+
+            --     elseif args[2] == 'all' then
+            --         -- export party information, in csv
+            --         date = os.date('*t')
+            --         name = windower.ffxi.get_player() and windower.ffxi.get_player().name
+            --         local file = files.new('../../logs/ph_all_%s_%.4u.%.2u.%.2u.%.2u%2u.log':format(name,date.year,date.month,date.day,date.hour,date.min))
+            --         if not file:exists() then
+            --             file:create()
+            --         end
+
+            --         for k,v in pairs(job_registry) do
+            --             file.append('%s,%s\n':format(k,v))
+            --         end
+            --     end
+        elseif S { 'show', 'toggle' }:contains(command) then
             if not args[2] then
                 write_to_chat("Partyhints: toggle subcommands:", " party, target, alliance, anon, unknown, self, last")
                 return
@@ -408,10 +441,10 @@ windower.register_event('addon command', function(...)
                 settings.show_self = not settings.show_self
             elseif args[2]:lower() == 'last' then
                 settings.show_last = not settings.show_last
-            elseif S{'trust','trusts'}:contains(args[2]:lower()) then
+            elseif S { 'trust', 'trusts' }:contains(args[2]:lower()) then
                 settings.show_trusts = not settings.show_trusts
             else
-                write_to_chat(S{"unknown command: " .. args[2]})
+                write_to_chat(S { "unknown command: " .. args[2] })
             end
             update()
             config.save(settings, windower.ffxi.get_player().name)
@@ -429,7 +462,7 @@ windower.register_event('addon command', function(...)
                 if type(n) == 'number' then settings.target_y_adjust = n end
             end
             update()
-            config.save(settings,windower.ffxi.get_player().name)
+            config.save(settings, windower.ffxi.get_player().name)
 
         elseif command == 'party' then
             if (not args[2] and not args[3]) then
@@ -444,9 +477,9 @@ windower.register_event('addon command', function(...)
                 if type(n) == 'number' then settings.party_y_adjust = n end
             end
             update()
-            config.save(settings,windower.ffxi.get_player().name)
+            config.save(settings, windower.ffxi.get_player().name)
 
-        elseif command == 'help' then   
+        elseif command == 'help' then
             write_to_chat(
                 'Usage: partyhints [command]',
                 'valid options:',
@@ -476,7 +509,7 @@ end)
 windower.register_event('load', function()
     -- dump trusts into job registry
 
-    for k,v in ipairs(trusts) do
+    for k, v in ipairs(trusts) do
         set_registry(v.name, v.mjob)
     end
 

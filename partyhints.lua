@@ -305,14 +305,14 @@ windower.register_event('incoming chunk', function(id, data)
 
 
         -- character update
-    elseif id == 0x0DF then
-        local p = packets.parse('incoming', data)
-        if p then
-            local player = windower.ffxi.get_mob_by_id(p['ID']).name
-            local job = p['Main job']
-            set_registry(player, job)
-        end
-        update()
+        -- elseif id == 0x0DF then
+        --     local p = packets.parse('incoming', data)
+        --     if p then
+        --         local player = windower.ffxi.get_mob_by_id(p['ID']).name
+        --         local job = p['Main job']
+        --         set_registry(player, job)
+        --     end
+        --     update()
 
         -- check packet
     elseif id == 0x0C9 then

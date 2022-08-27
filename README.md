@@ -8,7 +8,7 @@ as well as current target.
 
 ![The player is unchecked](img/unchecked.png) ![The player is checked](img/checked.png)
 
-Under some circumstances, job information can also be populated when inviting other players.
+Party members will also automatically be updated when in zone.
 
 ![A full party with some checked players](img/alliance.png)
 

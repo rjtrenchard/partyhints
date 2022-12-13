@@ -32,7 +32,7 @@
 
 _addon.name = "Party Hints"
 _addon.author = "rjt"
-_addon.version = "1.2"
+_addon.version = "1.3"
 _addon.commands = { "partyhints", "ph" }
 
 config = require('config')
@@ -40,9 +40,11 @@ packets = require('packets')
 res = require('resources')
 images = require('images')
 files = require('files')
+require('pack')
 require('tables')
 require('sets')
 require('functions')
+require('bit')
 
 require('icondb')
 require('trusts')
@@ -109,14 +111,26 @@ alliance2_count = 0
 ]]
 function set_registry(name, job_id)
     if not name then return false end
-    job_registry[name] = job_registry[name] or 'NON'
+    job_registry[name] = job_registry[name] or 'UNK'
     job_id = job_id or 0
-    if res.jobs[job_id].english_short == 'NON' and job_registry[name] and
-        not S { 'NON', 'UNK' }:contains(job_registry[name]) then
+    if res.jobs[job_id].english_short == 'UNK' and job_registry[name] then
         return false
     end
     job_registry[name] = res.jobs[job_id].english_short
     return true
+end
+
+--[[
+    set_anon
+    If anon_flag is true, change the characters job to NON
+]]
+function set_anon(name, anon_flag)
+    if not name then return false end
+    if anon_flag then
+        set_registry(name, 0)
+        update()
+    end
+
 end
 
 --[[
@@ -290,6 +304,14 @@ windower.register_event('incoming chunk', function(id, data)
             p['Main job'])
         update()
 
+        -- PC update packet
+    elseif id == 0x00D then
+        local p = packets.parse('incoming', data)
+        local anon_bit = bit.band(p['Flags'], 0x1000) > 0
+        set_anon(
+            p['Character Name'],
+            anon_bit
+        )
         -- 0xDF and 0xC8 from xivparty lua by Tylas
         -- alliance update
     elseif id == 0x0C8 then

@@ -4,9 +4,12 @@ PartyHints is a graphical addon for Windower4 that displays job icons by party a
 as well as current target.
 
 ## Usage
-`/check` will load a players job information into memory.
+`/check` will load a players job information into memory, if possible.
 
 ![The player is unchecked](img/unchecked.png) ![The player is checked](img/checked.png)
+
+Anonymous players will show a red question mark.
+![The player is anonymous](img/anon.png)
 
 Party members will also automatically be updated when in zone.
 
@@ -39,6 +42,6 @@ Trust jobs are automatically known by the addon.
 
 **Author:** rjt
 
-**Version:** 1.2
+**Version:** 1.3
 
-**Date:** 26/08/22
+**Date:** 13/12/22

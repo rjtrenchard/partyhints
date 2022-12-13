@@ -9,6 +9,7 @@ as well as current target.
 ![The player is unchecked](img/unchecked.png) ![The player is checked](img/checked.png)
 
 Anonymous players will show a red question mark.
+
 ![The player is anonymous](img/anon.png)
 
 Party members will also automatically be updated when in zone.

@@ -49,6 +49,7 @@ require('bit')
 require('icondb')
 require('trusts')
 
+
 defaults = {
     party_x_adjust = 0,
     party_y_adjust = 0,
@@ -91,7 +92,8 @@ do
 end
 
 -- job registry is a key->value table/db of player name->jobs we have encountered this addon session
-job_registry = T {}
+job_registry = S {}
+trust_list = S {}
 
 party_count = 0
 alliance1_count = 0
@@ -126,15 +128,12 @@ end
 ]]
 function set_anon(name, anon_flag)
     if not name then return false end
+    if trust_list:contains(name) then return false end
 
     if anon_flag then
-        for v in pairs(trusts) do
-            if name == v.name then return false end
-        end
         set_registry(name, 0)
         update()
     end
-
 end
 
 --[[
@@ -534,9 +533,9 @@ windower.register_event('job change', function(main_job_id, main_job_level)
 end)
 windower.register_event('load', function()
     -- dump trusts into job registry
-
     for k, v in ipairs(trusts) do
         set_registry(v.name, v.mjob)
+        trust_list[v.name] = true
     end
 
     if windower.ffxi.get_info().logged_in then

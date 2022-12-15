@@ -128,7 +128,7 @@ function set_anon(name, anon_flag)
     if not name then return false end
 
     if anon_flag then
-        for k, v in ipairs(trusts) do
+        for v in pairs(trusts) do
             if name == v.name then return false end
         end
         set_registry(name, 0)

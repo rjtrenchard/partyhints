@@ -32,7 +32,7 @@
 
 _addon.name = "Party Hints"
 _addon.author = "rjt"
-_addon.version = "1.3.1"
+_addon.version = "1.4.1"
 _addon.commands = { "partyhints", "ph" }
 
 config = require('config')
@@ -92,15 +92,17 @@ do
 end
 
 -- job registry is a key->value table/db of player name->jobs we have encountered this addon session
-job_registry = S {}
 trust_list = S {}
+function initialize_registry()
+    job_registry = S {}
+    party_members = S {}
 
-party_count = 0
-alliance1_count = 0
-alliance2_count = 0
+    party_count = 0
+    alliance1_count = 0
+    alliance2_count = 0
+end
 
-
---[[ 
+--[[
     set_registry
     Updates the job registry
     Does not update with 'NON' if the player already has a job in the registry
@@ -137,21 +139,77 @@ function set_anon(name, anon_flag)
 end
 
 --[[
+    unset_registry
+    unsets all non party members
+]]
+function unset_registry()
+    -- TODO: use regular contains somehow
+    local function contains(lhs, rhs)
+        for k, v in pairs(lhs) do
+            if v == rhs then return true end
+        end
+        return false
+    end
+
+    for k, v in pairs(job_registry) do
+        -- if not party_members:contains(k) then
+        --     job_registry[k] = nil
+        -- end
+
+        if not contains(party_members, k) then
+            job_registry[k] = nil
+        end
+    end
+end
+
+--[[
     get_registry
-    Gets the players job from registry. 
+    Gets the players job from registry.
     if the players name does not exist, return UNK
 
     arguments:
     name: string of the name of the player
-    
+
     return type: 3 letter job code, or UNK for unknown, NON for anon
 ]]
 function get_registry(name)
-    if job_registry[name] then
+    if job_registry and job_registry[name] then
         return job_registry[name]
     else
         return 'UNK'
     end
+end
+
+-- adds trusts to the registry
+function add_trusts_to_registry()
+    for k, v in ipairs(trusts) do
+        set_registry(v.name, v.mjob)
+        trust_list[v.name] = true
+    end
+end
+
+-- returns a list of all party members
+function update_party()
+    add_trusts_to_registry()
+
+    local party_indices = S {
+        'p1', 'p2', 'p3', 'p4', 'p5',
+        'a10', 'a11', 'a12', 'a13', 'a14', 'a15',
+        'a20', 'a21', 'a22', 'a23', 'a24', 'a25' }
+
+    local pt = windower.ffxi.get_party()
+    local pt_names = S {}
+
+    pt_names:append(windower.ffxi.get_player().name)
+    if pt.party1_count == 1 or pt.party1_count == nil then return pt_names end
+
+    for k, v in pairs(party_indices) do
+        if pt[k] and pt[k].name then
+            pt_names:append(pt[k].name)
+        end
+    end
+
+    return pt_names
 end
 
 --[[
@@ -161,8 +219,10 @@ function update_party_icons()
     if not settings.show_party_jobs then return end
 
     local pt = windower.ffxi.get_party()
+    party_members = update_party()
 
-    local function should_show_anon_state(name) return settings.show_anon or
+    local function should_show_anon_state(name)
+        return settings.show_anon or
             not S { 'UNK', 'NON' }:contains(get_registry(name))
     end
 
@@ -374,7 +434,6 @@ end)
 windower.register_event('prerender', function()
     local pt_new = windower.ffxi.get_party_info()
     if not pt_new then return end
-    if not pt_new.party1_count then return end
 
     -- check party counts, if they change from what is known in memory, update them.
     -- should be a catch all for when trusts are summoned, or lost when zoning/dying.
@@ -398,20 +457,6 @@ windower.register_event('addon command', function(...)
             windower.add_to_chat(144, v)
         end
     end
-
-    -- function get_party()
-    --     local party_indices = {
-    --         'p0','p1','p2','p3','p4','p5',
-    --         'a10','a11','a12','a13','a14','a15',
-    --         'a20','a21','a22','a23','a24','a25'}
-
-    --     local pt = windower.ffxi.get_party()
-    --     local pt_names = T{}
-    --     for k,v in ipairs(party_indices) do
-    --         pt_names.append(pt[v].name)
-    --     end
-    --     return pt_names
-    -- end
 
     if command then
         if false then
@@ -473,7 +518,6 @@ windower.register_event('addon command', function(...)
             end
             update()
             config.save(settings, windower.ffxi.get_player().name)
-
         elseif command == 'target' then
             if (not args[2] and not args[3]) then
                 write_to_chat("Partyhints: target subcommands:",
@@ -488,7 +532,6 @@ windower.register_event('addon command', function(...)
             end
             update()
             config.save(settings, windower.ffxi.get_player().name)
-
         elseif command == 'party' then
             if (not args[2] and not args[3]) then
                 write_to_chat("Partyhints: party subcommands:",
@@ -503,7 +546,6 @@ windower.register_event('addon command', function(...)
             end
             update()
             config.save(settings, windower.ffxi.get_player().name)
-
         elseif command == 'help' then
             write_to_chat(
                 'Usage: partyhints [command]',
@@ -526,21 +568,38 @@ windower.register_event('addon command', function(...)
 end)
 
 -- populate your job on login, load, or job change
-windower.register_event('login', function(name) set_registry(name, windower.ffxi.get_player().main_job_id) update() end)
+windower.register_event('login', function(name)
+    set_registry(name, windower.ffxi.get_player().main_job_id)
+    update()
+end)
+
+-- clear the registry when zoning or logging out
+windower.register_event('zone change', function()
+    unset_registry()
+    update()
+end)
+
+windower.register_event('logout', function()
+    initialize_registry()
+    update()
+end)
+
+
 windower.register_event('job change', function(main_job_id, main_job_level)
     set_registry(windower.ffxi.get_player().name, main_job_id)
     update()
 end)
 windower.register_event('load', function()
+    initialize_registry()
+
+
     -- dump trusts into job registry
-    for k, v in ipairs(trusts) do
-        set_registry(v.name, v.mjob)
-        trust_list[v.name] = true
-    end
+    add_trusts_to_registry()
 
     if windower.ffxi.get_info().logged_in then
         local me = windower.ffxi.get_player()
         set_registry(me.name, me.main_job_id)
+        party_members = update_party()
     end
     update()
 end)

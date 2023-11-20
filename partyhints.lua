@@ -32,7 +32,7 @@
 
 _addon.name = "Party Hints"
 _addon.author = "rjt"
-_addon.version = "1.4.1"
+_addon.version = "1.4.2"
 _addon.commands = { "partyhints", "ph" }
 
 config = require('config')
@@ -143,6 +143,9 @@ end
     unsets all non party members
 ]]
 function unset_registry()
+    if not job_registry then
+        job_registry = T {}
+    end
     -- TODO: use regular contains somehow
     local function contains(lhs, rhs)
         for k, v in pairs(lhs) do
@@ -188,8 +191,12 @@ function add_trusts_to_registry()
     end
 end
 
--- returns a list of all party members
+-- returns a table of all party members
 function update_party()
+    if not windower.ffxi.get_info().logged_in then
+        party_members = T {}
+        return
+    end
     add_trusts_to_registry()
 
     local party_indices = S {
@@ -201,7 +208,7 @@ function update_party()
     local pt_names = S {}
 
     pt_names:append(windower.ffxi.get_player().name)
-    if pt.party1_count == 1 or pt.party1_count == nil then return pt_names end
+    if pt and pt.party1_count == 1 or pt.party1_count == nil then return pt_names end
 
     for k, v in pairs(party_indices) do
         if pt[k] and pt[k].name then
@@ -219,7 +226,15 @@ function update_party_icons()
     if not settings.show_party_jobs then return end
 
     local pt = windower.ffxi.get_party()
-    party_members = update_party()
+    if not update_party() then
+        -- remove all images here
+        for k, v in pairs(party_img) do
+            party_img[k]:clear()
+            party_img[k]:hide()
+        end
+        return
+    end
+
 
     local function should_show_anon_state(name)
         return settings.show_anon or
@@ -352,6 +367,14 @@ function update()
     else
         target_img:clear()
         target_img:hide()
+    end
+end
+
+function add_me_to_registry()
+    if windower.ffxi.get_info().logged_in then
+        local me = windower.ffxi.get_player()
+        set_registry(me.name, me.main_job_id)
+        update_party()
     end
 end
 
@@ -576,6 +599,7 @@ end)
 -- clear the registry when zoning or logging out
 windower.register_event('zone change', function()
     unset_registry()
+    add_me_to_registry()
     update()
 end)
 
@@ -596,10 +620,7 @@ windower.register_event('load', function()
     -- dump trusts into job registry
     add_trusts_to_registry()
 
-    if windower.ffxi.get_info().logged_in then
-        local me = windower.ffxi.get_player()
-        set_registry(me.name, me.main_job_id)
-        party_members = update_party()
-    end
+    add_me_to_registry()
+
     update()
 end)

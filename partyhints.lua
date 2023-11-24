@@ -466,8 +466,8 @@ windower.register_event('prerender', function()
         or pt_new.party2_count ~= alliance1_count
         or pt_new.party3_count ~= alliance2_count then
         party_count = pt_new.party1_count or 0
-        alliance1_count = pt_new.party2_count
-        alliance2_count = pt_new.party3_count
+        alliance1_count = pt_new.party2_count or 0
+        alliance2_count = pt_new.party3_count or 0
         update()
     end
 end)

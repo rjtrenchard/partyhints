@@ -43,6 +43,6 @@ Trust jobs are automatically known by the addon.
 
 **Author:** rjt
 
-**Version:** 1.4.2
+**Version:** 1.4.4
 
 **Date:** 2023/11/20

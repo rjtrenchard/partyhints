@@ -56,7 +56,7 @@ _icons._16px = {
     NON = 'FAQ-icon-red.bmp',    -- player is anonymous
     UNK = 'FAQ-icon.bmp',    -- players job is unknown (not yet checked into memory)
 }
-_icons._8px = { -- as of yet unussed.
+_icons._8px = { -- as of yet unused.
     green_orb = 'green.bmp', 
     red_orb = 'red.bmp',
     blue_orb = 'blue.bmp'

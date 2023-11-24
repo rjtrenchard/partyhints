@@ -32,7 +32,7 @@
 
 _addon.name = "Party Hints"
 _addon.author = "rjt"
-_addon.version = "1.4.2"
+_addon.version = "1.4.3"
 _addon.commands = { "partyhints", "ph" }
 
 config = require('config')
@@ -193,10 +193,12 @@ end
 
 -- returns a table of all party members
 function update_party()
+    -- init reg if we're not logged in
     if not windower.ffxi.get_info().logged_in then
-        party_members = T {}
+        initialize_registry()
         return
     end
+
     add_trusts_to_registry()
 
     local party_indices = S {
@@ -463,7 +465,7 @@ windower.register_event('prerender', function()
     if pt_new.party1_count ~= party_count
         or pt_new.party2_count ~= alliance1_count
         or pt_new.party3_count ~= alliance2_count then
-        party_count = pt_new.party1_count
+        party_count = pt_new.party1_count or 0
         alliance1_count = pt_new.party2_count
         alliance2_count = pt_new.party3_count
         update()

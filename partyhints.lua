@@ -263,14 +263,18 @@ function update_party_icons()
     local party_gap = 21
     local alliance_gap = 16
 
+
+
     for i, v in ipairs(p_indices) do
+        local name = pt and pt[v] and pt[v].name
         -- draw party icons
-        if i <= party_count
-            and should_show_anon_state(pt[v].name)
-            and should_show_unknown(pt[v].name)
+        if name
+            and i <= party_count
+            and should_show_anon_state(name)
+            and should_show_unknown(name)
             and should_show_self(i)
             and should_show_last(i) then
-            party_img[p_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(pt[v].name)])
+            party_img[p_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(name)])
             party_img[p_indices[i]]:transparency(0)
             party_img[p_indices[i]]:size(_icons.size_16px, _icons.size_16px)
             party_img[p_indices[i]]:pos_x(party_x_pos)
@@ -282,12 +286,14 @@ function update_party_icons()
         end
     end
     for i, v in ipairs(a1_indices) do
+        local name = pt and pt[v] and pt[v].name
         -- draw alliance 1 icons
-        if i <= alliance1_count
-            and should_show_anon_state(pt[v].name)
-            and should_show_unknown(pt[v].name)
+        if name
+            and i <= alliance1_count
+            and should_show_anon_state(name)
+            and should_show_unknown(name)
             and should_show_alliance() then
-            party_img[a1_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(pt[v].name)])
+            party_img[a1_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(name)])
             party_img[a1_indices[i]]:transparency(0)
             party_img[a1_indices[i]]:size(_icons.size_16px, _icons.size_16px)
             party_img[a1_indices[i]]:pos_x(party_x_pos)
@@ -299,12 +305,14 @@ function update_party_icons()
         end
     end
     for i, v in ipairs(a2_indices) do
+        local name = pt and pt[v] and pt[v].name
         -- draw alliance 2 icons
-        if i <= alliance2_count
-            and should_show_anon_state(pt[v].name)
-            and should_show_unknown(pt[v].name)
+        if name
+            and i <= alliance2_count
+            and should_show_anon_state(name)
+            and should_show_unknown(name)
             and should_show_alliance() then
-            party_img[a2_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(pt[v].name)])
+            party_img[a2_indices[i]]:path(_path .. _icons.path_16px .. _icons._16px[get_registry(name)])
             party_img[a2_indices[i]]:transparency(0)
             party_img[a2_indices[i]]:size(_icons.size_16px, _icons.size_16px)
             party_img[a2_indices[i]]:pos_x(party_x_pos)
